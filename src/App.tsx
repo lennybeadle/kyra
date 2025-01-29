@@ -1,25 +1,30 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import styled from 'styled-components';
+import TopSection from './components/TopSection';
+import StatsSection from './components/StatsSection';
+import ChartSection from './components/ChartSection';
+import HeatmapSection from './components/HeatmapSection';
 
+const AppContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background-color: #0c0c0c;
+  color: #ffffff;
+  min-height: 100vh;
+`;
+
+/**
+ * The main App just hosts the top-level sections in order.
+ */
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AppContainer>
+      <TopSection />
+      <StatsSection />
+      <ChartSection />
+      <HeatmapSection />
+    </AppContainer>
   );
 }
 
