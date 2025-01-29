@@ -32,7 +32,29 @@ export interface BaseDataResponse {
       mostRecentPostsWithTypes: any[];
     };
     instagram: {
+      externalId: string;
+      id: string;
       handle: string;
+      followersCount: number;
+      engagementRate: number;
+      followingCount: number;
+      likesCount: number;
+      postsCount: number;
+      region: string;
+      bio: string;
+      isPrivate: number;
+      isVerified: boolean;
+      isActive: boolean;
+      medianEngagement: number;
+      medianViews: number;
+      sponsoredMedianEngagement: number;
+      sponsoredMedianViews: number;
+      isBrand: boolean;
+      isKyra: number;
+      profilePicture: string;
+      nickname: string;
+      language: string;
+      mostRecentPostsWithTypes: any[];
     };
     youtube: {
       channelId: string;
@@ -64,5 +86,20 @@ export interface StatsHistoryResponse {
       viewsCount: number;
       createdAt: string; // e.g. "2024-12-29"
     }>;
+  };
+}
+
+export interface PlatformStatsRowProps {
+  icon: React.ReactNode;
+  followers: number;
+  medianViews?: number;
+  sponsoredMedianViews?: number;
+  totalLikes?: number;
+  engagementRate?: number; // pass as fraction or percentage
+  totalPosts?: number;
+  trends?: {
+    followers?: string;
+    likes?: string;
+    posts?: string;
   };
 }

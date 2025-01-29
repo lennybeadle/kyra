@@ -11,9 +11,12 @@ import {
   Legend,
   ChartOptions,
 } from 'chart.js';
+import { Skeleton } from '@mui/material';
+import { FaTiktok } from 'react-icons/fa';
 import { StatsHistoryResponse } from '../types';
 import { getStatsHistory } from '../../utils';
 import * as S from './styles';
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,13 +26,14 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
 type LineChartInstance = ChartJS<'line', number[], string>;
+
 const ChartSection: React.FC = () => {
   const [statsHistory, setStatsHistory] = useState<StatsHistoryResponse | null>(
     null
   );
 
-  // We'll store references to gradient fills
   const [likesGradient, setLikesGradient] = useState<CanvasGradient | string>(
     ''
   );
@@ -59,23 +63,33 @@ const ChartSection: React.FC = () => {
         gradLikes.addColorStop(0, 'rgba(112,239,222,0.5)');
         gradLikes.addColorStop(1, 'rgba(112,239,222,0)');
         setLikesGradient(gradLikes);
+
+        const gradFollowers = ctx.createLinearGradient(0, 0, 0, 400);
+        gradFollowers.addColorStop(0, 'rgba(46, 204, 113, 0.5)');
+        gradFollowers.addColorStop(1, 'rgba(46, 204, 113, 0)');
+        setFollowersGradient(gradFollowers);
       }
     }
   }, [statsHistory]);
 
   if (!statsHistory) {
-    return <S.ChartWrapper>Loading chart...</S.ChartWrapper>;
+    return (
+      <S.ChartWrapper>
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={50}
+          sx={{ backgroundColor: '#1c1a1a', opacity: 0.5 }}
+        />
+      </S.ChartWrapper>
+    );
   }
 
   const historyPoints = statsHistory.data.historyPoints || [];
-  // X-axis labels
   const labels = historyPoints.map((hp) => hp.createdAt);
-
-  // Example daily likes/followers from likesCount/followersCount
   const dailyLikes = historyPoints.map((hp) => hp.likesCount);
   const dailyFollowers = historyPoints.map((hp) => hp.followersCount);
 
-  // Convert date strings like '2024-12-29' to something like '29 DEC'
   function formatDateLabel(isoDateStr: string) {
     const date = new Date(isoDateStr);
     const day = date.getDate();
@@ -85,7 +99,6 @@ const ChartSection: React.FC = () => {
     return `${day} ${monthShort}`;
   }
 
-  // ChartJS data
   const data = {
     labels,
     datasets: [
@@ -94,7 +107,7 @@ const ChartSection: React.FC = () => {
         data: dailyLikes,
         fill: true,
         backgroundColor: likesGradient,
-        borderColor: '#70efde',
+        borderColor: '#2ECC71',
         borderWidth: 2,
         pointRadius: 0,
       },
@@ -103,21 +116,17 @@ const ChartSection: React.FC = () => {
         data: dailyFollowers,
         fill: true,
         backgroundColor: followersGradient,
-        borderColor: '#2ECC71',
+        borderColor: '#70efde',
         borderWidth: 2,
         pointRadius: 0,
       },
     ],
   };
 
-  // Chart options
   const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
+
     scales: {
       x: {
         grid: {
@@ -125,27 +134,28 @@ const ChartSection: React.FC = () => {
         },
         ticks: {
           color: '#ccc',
+          maxRotation: 90,
+          minRotation: 90,
           callback: function (value, index) {
-            // Convert label to "29 DEC"
             const label = labels[index];
             return formatDateLabel(label);
           },
         },
       },
       y: {
+        min: -5000000,
+        max: 35000000,
         grid: {
-          color: '#222', // subtle horizontal lines
+          display: false,
         },
         ticks: {
           color: '#ccc',
-          // or you can do your own formatting, e.g. '35m'
           callback: function (val) {
-            // example number formatting
             const v = Number(val);
-            if (v >= 1_000_000) {
-              return (v / 1_000_000).toFixed(1) + 'm';
-            } else if (v >= 1000) {
-              return (v / 1000).toFixed(1) + 'k';
+            if (v >= 1000000 || v <= -1000000) {
+              return (v / 1000000).toFixed(0) + 'm';
+            } else if (Math.abs(v) >= 1000) {
+              return (v / 1000).toFixed(0) + 'k';
             }
             return v;
           },
@@ -154,12 +164,13 @@ const ChartSection: React.FC = () => {
     },
     plugins: {
       legend: {
-        display: true,
+        display: false,
+
         labels: {
-          color: '#ccc', // text color
+          color: '#ccc',
           usePointStyle: true,
-          boxHeight: 8,
-          boxWidth: 8,
+          boxHeight: 10,
+          boxWidth: 10,
           padding: 20,
         },
       },
@@ -176,8 +187,27 @@ const ChartSection: React.FC = () => {
   return (
     <S.ChartWrapper>
       <S.ChartHeader>
-        <S.ChartTitle>Daily likes & Daily followers</S.ChartTitle>
-        <S.Badge>TikTok data only</S.Badge>
+        <S.CharTextGroup>
+          <S.ChartTitle>
+            <span
+              className="color-box"
+              style={{ backgroundColor: '#2ECC71' }}
+            ></span>
+            Daily Likes
+          </S.ChartTitle>
+          <S.ChartTitle>
+            <span
+              className="color-box"
+              style={{ backgroundColor: '#70efde' }}
+            ></span>
+            Daily Followers
+          </S.ChartTitle>
+        </S.CharTextGroup>
+
+        <S.Badge>
+          <FaTiktok size={18} />
+          <span>TikTok data only</span>
+        </S.Badge>
       </S.ChartHeader>
       <S.ChartContainer>
         <Line ref={chartRef} data={data} options={options} />

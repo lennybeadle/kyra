@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import CalendarHeatmap from 'react-calendar-heatmap';
-import 'react-calendar-heatmap/dist/styles.css';
+import React, { useEffect, useRef, useState } from 'react';
+import { Skeleton } from '@mui/material';
+import { FaTiktok } from 'react-icons/fa';
+import CalHeatmap from 'cal-heatmap';
+import 'cal-heatmap/cal-heatmap.css'; // Import Cal-Heatmap styles
 import { StatsHistoryResponse } from '../types';
 import { getStatsHistory } from '../../utils';
 import * as S from './styles';
@@ -8,7 +10,11 @@ const HeatmapSection: React.FC = () => {
   const [statsHistory, setStatsHistory] = useState<StatsHistoryResponse | null>(
     null
   );
-
+  const calRef = useRef<CalHeatmap | null>(null);
+  const [subDomainSize, setSubDomainSize] = useState({
+    width: 20,
+    height: 20,
+  });
   useEffect(() => {
     (async () => {
       try {
@@ -20,42 +26,119 @@ const HeatmapSection: React.FC = () => {
     })();
   }, []);
 
-  if (!statsHistory) {
-    return <S.HeatmapWrapper>Loading heatmap...</S.HeatmapWrapper>;
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 600) {
+        setSubDomainSize({ width: 5, height: 5 });
+      } else if (window.innerWidth < 900) {
+        setSubDomainSize({ width: 8, height: 8 });
+      } else {
+        setSubDomainSize({ width: 15, height: 15 });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!statsHistory) return;
+
+    if (!calRef.current) {
+      calRef.current = new CalHeatmap();
+    }
+
+    const startDate = new Date('2024-02-01');
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1); // Move to next month
+    endDate.setDate(0);
+    const dayMap: Record<string, { date: Date; count: number }> = {};
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setDate(d.getDate() + 1)
+    ) {
+      const isoDate = new Date(d).toISOString().split('T')[0];
+      dayMap[isoDate] = {
+        date: new Date(d),
+        count: 0,
+      };
+    }
+
+    const historyPoints = statsHistory.data.historyPoints || [];
+    historyPoints.forEach((hp) => {
+      const isoDate = new Date(hp.createdAt).toISOString().split('T')[0];
+      if (dayMap[isoDate]) {
+        dayMap[isoDate].count = hp.postsCount;
+      }
+    });
+
+    const heatmapData = Object.values(dayMap).map(({ date, count }) => ({
+      date: date.getTime(),
+      count,
+    }));
+
+    calRef.current.paint({
+      itemSelector: '#cal-heatmap-wrapper',
+      date: {
+        start: new Date('2024-03-01'),
+      },
+      domain: {
+        type: 'month',
+        label: {
+          position: 'top',
+          text: (timestamp: number) => {
+            const date = new Date(timestamp);
+            return date
+              .toLocaleString('en-US', { month: 'short' })
+              .replace('.', '');
+          },
+        },
+      },
+      subDomain: {
+        type: 'day',
+        radius: 2,
+        width: subDomainSize.width,
+        height: subDomainSize.height,
+      },
+      data: {
+        source: heatmapData,
+        type: 'json',
+        x: 'date',
+        y: 'count',
+        groupY: 'sum',
+      },
+      scale: {
+        color: {
+          type: 'threshold',
+          domain: [1, 2, 3, 4], // breakpoints
+          range: ['#2e2c32', '#9BE9A8', '#40C463', '#30A14E', '#216E39'],
+        },
+      },
+    });
+  }, [statsHistory, subDomainSize]);
+
+  let lastPostedDate: string | null = null;
+  if (statsHistory) {
+    statsHistory.data.historyPoints.forEach((hp) => {
+      if (hp.postsCount > 0) {
+        if (!lastPostedDate || hp.createdAt > lastPostedDate) {
+          lastPostedDate = hp.createdAt;
+        }
+      }
+    });
   }
 
-  const historyPoints = statsHistory.data.historyPoints || [];
-  const heatmapData = historyPoints.map((hp) => ({
-    date: hp.createdAt,
-    count: hp.postsCount,
-  }));
-
-  // Suppose you want to display the entire year of 2024 plus Jan 2025
-  // You can adjust these to min/max from your data, or a fixed range
-  const startDate = new Date('2024-03-01');
-  const endDate = new Date('2025-01-31');
-
-  // Example: find the last posted date for display
-  // We'll pick the max "createdAt" that has postsCount > 0
-  let lastPostedDate: string | null = null;
-  historyPoints.forEach((hp) => {
-    if (hp.postsCount > 0) {
-      if (!lastPostedDate || hp.createdAt > lastPostedDate) {
-        lastPostedDate = hp.createdAt;
-      }
-    }
-  });
-  // Format it as "2nd Oct ‘24" or similar
-  // A quick utility to do day/month/year with suffix
   function formatLastPosted(isoStr: string) {
     const date = new Date(isoStr);
     const day = date.getDate();
     const monthShort = date.toLocaleString('en-US', { month: 'short' });
-    const year = date.getFullYear().toString().slice(-2); // '24' for 2024
-    // Simple ordinal suffix for day
-    const suffix = (function (d) {
-      if (d > 3 && d < 21) return 'th';
-      switch (d % 10) {
+    const year = date.getFullYear().toString().slice(-2);
+    const suffix = (() => {
+      if (day > 3 && day < 21) return 'th';
+      switch (day % 10) {
         case 1:
           return 'st';
         case 2:
@@ -65,37 +148,40 @@ const HeatmapSection: React.FC = () => {
         default:
           return 'th';
       }
-    })(day);
+    })();
     return `${day}${suffix} ${monthShort} ’${year}`;
   }
+
+  if (!statsHistory) {
+    return (
+      <S.HeatmapWrapper>
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={50}
+          sx={{ backgroundColor: '#1c1a1a', opacity: 0.5 }}
+        />
+      </S.HeatmapWrapper>
+    );
+  }
+
   return (
     <S.HeatmapWrapper>
-      {/* Header row with title, last posted date, and TikTok badge */}
       <S.HeaderRow>
         <S.TitleRow>
-          <h3>Posting history</h3>
+          <S.PostHistory>Posting history</S.PostHistory>
           {lastPostedDate && (
             <span>Last posted: {formatLastPosted(lastPostedDate)}</span>
           )}
         </S.TitleRow>
-        <S.Badge>TikTok data only</S.Badge>
+        <S.Badge>
+          <FaTiktok size={18} />
+          <span>TikTok data only</span>
+        </S.Badge>
       </S.HeaderRow>
 
       <S.CalendarContainer>
-        <CalendarHeatmap
-          startDate={startDate}
-          endDate={endDate}
-          values={heatmapData}
-          showMonthLabels
-          showWeekdayLabels
-          weekdayLabels={['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']}
-          classForValue={(value) => {
-            if (!value || value.count === 0) {
-              return 'color-empty';
-            }
-            return 'color-filled';
-          }}
-        />
+        <S.LegendContainer id="cal-heatmap-wrapper" />
       </S.CalendarContainer>
     </S.HeatmapWrapper>
   );

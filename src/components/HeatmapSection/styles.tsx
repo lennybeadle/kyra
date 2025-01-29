@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 export const HeatmapWrapper = styled.section`
   border: 1px solid #333;
-  border-radius: 0.75rem;
+  border-radius: 1.5rem;
   background: #0c0c0c;
   padding: 1rem;
   margin-bottom: 2rem;
@@ -33,33 +33,29 @@ export const TitleRow = styled.div`
 `;
 
 export const Badge = styled.span`
-  background: #111;
+  background: #1a1920;
   border: 1px solid #444;
   border-radius: 999px;
-  padding: 0.3rem 0.7rem;
+  padding: 0.2rem 0.5rem;
   font-size: 0.8rem;
-  color: #aaa;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem;
 `;
 
-/** Container for the actual heatmap so it can scroll horizontally if needed */
 export const CalendarContainer = styled.div`
-  overflow-x: auto;
-  .react-calendar-heatmap text {
-    fill: #bbb; /* Month/weekday labels */
-  }
-  /* Day squares (cells) are rectangles with class color-empty or color-filled */
-  .color-empty {
-    fill: #333 !important;
-    stroke: #333 !important;
-  }
-  .color-filled {
-    fill: #70efde !important;
-    stroke: #70efde !important;
-  }
-  /* You might want smaller or larger squares: override .react-calendar-heatmap .day */
-  .react-calendar-heatmap .day {
-    shape-rendering: auto; /* so it’s not pixelated */
-    rx: 3px; /* slightly rounded corners */
-    ry: 3px;
-  }
+  width: 100%;
+`;
+
+export const PostHistory = styled.div`
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+`;
+export const LegendContainer = styled.div`
+  display: flex;
+  justify-content: center;
 `;

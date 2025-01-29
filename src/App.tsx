@@ -1,4 +1,3 @@
-import React from 'react';
 import styled from 'styled-components';
 import TopSection from './components/TopSection';
 import StatsSection from './components/StatsSection';
@@ -14,9 +13,6 @@ const AppContainer = styled.div`
   min-height: 100vh;
 `;
 
-/**
- * The main App just hosts the top-level sections in order.
- */
 function App() {
   return (
     <AppContainer>

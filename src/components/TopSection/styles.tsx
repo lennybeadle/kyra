@@ -1,11 +1,11 @@
 import styled from 'styled-components';
+import { breakpoints } from '../theme';
 export const TopSectionWrapper = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding-bottom: 2rem;
-  border-bottom: 1px solid #333;
 `;
 
 export const ProfileImage = styled.img`
@@ -51,16 +51,21 @@ export const SocialRow = styled.div`
   display: flex;
   gap: 0.75rem;
   margin-bottom: 2rem;
+  @media (max-width: ${breakpoints.mobile}) {
+    flex-direction: column;
+  }
 `;
 
 export const SocialLink = styled.a`
-  background: #111;
+  background: #1a1920;
   border: 1px solid #444;
   padding: 0.4rem 0.8rem;
-  border-radius: 999px;
+  border-radius: 10px;
   color: #fff;
   font-size: 0.9rem;
   text-decoration: none;
+  display: flex;
+  justify-content: center;
   &:hover {
     background: #222;
   }
@@ -91,4 +96,11 @@ export const FeeBox = styled.div`
     font-size: 1.4rem;
     font-weight: 600;
   }
+`;
+
+export const SubTitle = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem;
 `;

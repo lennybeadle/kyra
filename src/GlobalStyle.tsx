@@ -1,9 +1,5 @@
 import { createGlobalStyle } from 'styled-components';
 
-/**
- * Global styles for a dark theme with white text.
- * Also sets up class-based overrides for the Heatmap squares.
- */
 const GlobalStyle = createGlobalStyle`
   /* Reset / box-sizing */
   *, *::before, *::after {
@@ -22,7 +18,6 @@ const GlobalStyle = createGlobalStyle`
     min-height: 100vh;
   }
 
-  /* React Calendar Heatmap squares */
   .react-calendar-heatmap text {
     fill: #aaa;
   }

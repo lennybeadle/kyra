@@ -1,10 +1,22 @@
 import React, { useEffect, useState } from 'react';
+import { Skeleton } from '@mui/material';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import { FaTiktok } from 'react-icons/fa';
 import { BaseDataResponse } from '../types';
 import { getBaseData } from '../../utils';
+import PlatformStatsRow from './PlatformStatsRow';
 import * as S from './styles';
+const TABS = [
+  { href: '#account-info', label: 'Account info' },
+  { href: '#media', label: 'Media' },
+  { href: '#past-briefs', label: 'Past briefs' },
+  { href: '#audience-personas', label: 'Audience personas' },
+  { href: '#lookalikes', label: 'Lookalikes' },
+];
+
 const StatsSection: React.FC = () => {
   const [baseData, setBaseData] = useState<BaseDataResponse | null>(null);
-
+  const [activeTab, setActiveTab] = useState<string>('#account-info');
   useEffect(() => {
     (async () => {
       try {
@@ -17,136 +29,73 @@ const StatsSection: React.FC = () => {
   }, []);
 
   if (!baseData) {
-    return <S.StatsSectionWrapper>Loading stats...</S.StatsSectionWrapper>;
+    return (
+      <S.StatsSectionWrapper>
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={50}
+          sx={{ backgroundColor: '#1c1a1a', opacity: 0.5 }}
+        />
+      </S.StatsSectionWrapper>
+    );
   }
 
   const tiktok = baseData.data.tiktok;
   const instagram = baseData.data.instagram;
 
-  // Helper for formatting big numbers. Adjust as needed for your design.
-  const formatNumber = (num: number) => {
-    // Example: 157000000 => "157m"
-    if (num >= 1_000_000_000) {
-      return (num / 1_000_000_000).toFixed(1) + 'b';
-    } else if (num >= 1_000_000) {
-      return (num / 1_000_000).toFixed(1) + 'm';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
-    }
-    return num.toString();
-  };
-
+  console.log('instagram:', instagram);
   return (
     <S.StatsSectionWrapper>
-      {/* Tabs row */}
       <S.TabsRow>
-        <S.TabLink href="#account-info" active>
-          Account info
-        </S.TabLink>
-        <S.TabLink href="#media">Media</S.TabLink>
-        <S.TabLink href="#past-briefs">Past briefs</S.TabLink>
-        <S.TabLink href="#audience-personas">Audience personas</S.TabLink>
-        <S.TabLink href="#lookalikes">Lookalikes</S.TabLink>
+        {TABS.map(({ href, label }) => (
+          <S.TabLink
+            key={href}
+            href={href}
+            active={activeTab === href}
+            onClick={() => setActiveTab(href)}
+          >
+            {label}
+          </S.TabLink>
+        ))}
       </S.TabsRow>
 
-      {/* Profile bio box */}
       <S.ProfileBioContainer>
         <S.ProfileBioTitle>Profile bio</S.ProfileBioTitle>
-        <div>
+        <S.ProfileBioContent>
           <S.HandleBadge>
-            {tiktok.handle ? '@' + tiktok.handle : '@unknown'}
+            <FaTiktok size={18} />
+            <span>{tiktok.handle ? '@' + tiktok.handle : '@unknown'}</span>
           </S.HandleBadge>
           <S.BioText>{tiktok.bio || ''}</S.BioText>
-        </div>
+        </S.ProfileBioContent>
       </S.ProfileBioContainer>
 
-      {/* Stats box */}
       <S.StatsContainer>
-        {/* TikTok row */}
-        <S.StatsRow>
-          <S.PlatformIcon>🎶</S.PlatformIcon> {/* placeholder, use real icon */}
-          <S.StatsGroup>
-            <S.StatBox>
-              <span>Followers</span>
-              <S.StatsNumber>
-                {formatNumber(tiktok.followersCount)}
-              </S.StatsNumber>
-              <S.Trend>
-                <S.Symbol>↑&nbsp;</S.Symbol> 107% in 30 days
-              </S.Trend>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Average views</span>
-              <S.StatsNumber>
-                {tiktok.medianViews ? formatNumber(tiktok.medianViews) : '—'}
-              </S.StatsNumber>
-              <S.Trend>&nbsp;</S.Trend>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Potential sponsored views</span>
-              <S.StatsNumber>
-                {tiktok.sponsoredMedianViews
-                  ? formatNumber(tiktok.sponsoredMedianViews)
-                  : '0'}
-              </S.StatsNumber>
-              <S.Trend>&nbsp;</S.Trend>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Total likes</span>
-              <S.StatsNumber>{formatNumber(tiktok.likesCount)}</S.StatsNumber>
-              <S.Trend>
-                <S.Symbol>↑&nbsp;</S.Symbol> 78.5% in 30 days
-              </S.Trend>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Engagement rate</span>
-              <S.StatsNumber>
-                {tiktok.engagementRate
-                  ? (tiktok.engagementRate / 100).toFixed(3) + '%'
-                  : '—'}
-              </S.StatsNumber>
-              <S.Trend>&nbsp;</S.Trend>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Total posts</span>
-              <S.StatsNumber>{formatNumber(tiktok.postsCount)}</S.StatsNumber>
-              <S.Trend>
-                <S.Symbol>↑&nbsp;</S.Symbol> 28 in 30 days
-              </S.Trend>
-            </S.StatBox>
-          </S.StatsGroup>
-        </S.StatsRow>
+        <PlatformStatsRow
+          icon={<FaTiktok />}
+          followers={tiktok.followersCount ?? 0}
+          medianViews={tiktok.medianViews ?? '-'}
+          sponsoredMedianViews={tiktok.sponsoredMedianViews ?? '0'}
+          totalLikes={tiktok.likesCount ?? '0'}
+          engagementRate={tiktok.engagementRate ?? 0}
+          totalPosts={tiktok.postsCount ?? 0}
+          trends={{
+            followers: '107% in 30 days',
+            likes: '78.5% in 30 days',
+            posts: '28 in 30 days',
+          }}
+        />
 
-        {/* Instagram row */}
-        <S.StatsRow>
-          <S.PlatformIcon>📷</S.PlatformIcon> {/* placeholder, use real icon */}
-          <S.StatsGroup>
-            <S.StatBox>
-              <span>Followers</span>
-              <S.StatsNumber>{formatNumber(42800000)}</S.StatsNumber>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Average views</span>
-              <S.StatsNumber>—</S.StatsNumber>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Potential sponsored views</span>
-              <S.StatsNumber>0</S.StatsNumber>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Total likes</span>
-              <S.StatsNumber>0</S.StatsNumber>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Engagement rate</span>
-              <S.StatsNumber>328.8k%</S.StatsNumber>
-            </S.StatBox>
-            <S.StatBox>
-              <span>Total posts</span>
-              <S.StatsNumber>0</S.StatsNumber>
-            </S.StatBox>
-          </S.StatsGroup>
-        </S.StatsRow>
+        <PlatformStatsRow
+          icon={<InstagramIcon sx={{ fontSize: 40 }} />}
+          followers={instagram.followersCount ?? 0}
+          medianViews={instagram.medianViews ?? ''}
+          sponsoredMedianViews={instagram.sponsoredMedianViews ?? '0'}
+          totalLikes={instagram.likesCount ?? '0'}
+          engagementRate={instagram.engagementRate ?? 0}
+          totalPosts={instagram.postsCount ?? 0}
+        />
       </S.StatsContainer>
     </S.StatsSectionWrapper>
   );

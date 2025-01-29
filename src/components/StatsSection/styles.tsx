@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { breakpoints } from '../theme';
 
 export const StatsSectionWrapper = styled.section`
   padding-top: 1rem;
@@ -9,39 +10,72 @@ export const TabsRow = styled.nav`
   gap: 4rem;
   border-bottom: 1px solid #333;
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
   justify-content: center;
+  @media (max-width: ${breakpoints.tablet}) {
+    display: none;
+  }
 `;
 
 export const TabLink = styled.a<{ active?: boolean }>`
-  color: ${({ active }) => (active ? '#70efde' : '#fff')};
-  text-decoration: ${({ active }) => (active ? 'underline' : 'none')};
+  color: ${({ active }) => (active ? '#C6F12E' : '#fff')};
+  text-decoration: none; // Remove default underline
   font-weight: ${({ active }) => (active ? '600' : '400')};
+
   cursor: pointer;
+  position: relative;
+  padding-bottom: 0.5rem;
+
   &:hover {
     opacity: 0.8;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: ${({ active }) => (active ? '#C6F12E' : 'transparent')};
+    transition: background 0.3s ease;
+
+    transform: scaleX(${({ active }) => (active ? '1' : '0')});
+    transform-origin: center;
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+
+  &:hover::after {
+    background: #c6f12e;
+    transform: scaleX(1);
   }
 `;
 
 export const ProfileBioContainer = styled.div`
   border: 1px solid #333;
-  border-radius: 0.75rem;
+  border-radius: 1.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
 `;
 
 export const ProfileBioTitle = styled.h3`
   margin: 0;
-  font-size: 1.1rem;
-  margin-bottom: 0.75rem;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
 `;
 
+export const ProfileBioContent = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3rem;
+`;
 export const HandleBadge = styled.span`
-  display: inline-block;
-  background: #111;
+  display: flex;
+  background: #1a1920;
   border: 1px solid #444;
   border-radius: 999px;
-  padding: 0.25rem 0.75rem;
+  padding: 0.4rem 0.8rem;
   font-size: 0.9rem;
   margin-right: 0.5rem;
 `;
@@ -53,7 +87,7 @@ export const BioText = styled.span`
 
 export const StatsContainer = styled.div`
   border: 1px solid #333;
-  border-radius: 0.75rem;
+  border-radius: 1.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
 `;
@@ -63,13 +97,11 @@ export const StatsRow = styled.div`
   align-items: center;
   padding: 1rem 0;
   gap: 2rem;
-  border-bottom: 1px solid #333;
   &:last-child {
     border-bottom: none;
   }
 
-  /* On smaller screens, stack vertically */
-  @media (max-width: 768px) {
+  @media (max-width: ${breakpoints.tablet}) {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -80,6 +112,11 @@ export const PlatformIcon = styled.div`
   margin-right: 1rem;
   min-width: 40px;
   text-align: center;
+  @media (max-width: ${breakpoints.tablet}) {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 export const StatsGroup = styled.div`
